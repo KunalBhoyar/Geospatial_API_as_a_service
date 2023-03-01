@@ -37,7 +37,8 @@ class Log_Query(BaseModel):
     log_name:str
     status:int
     filter_range:Optional[str]='last_hour'
-    username:Optional[str]='admin'
+    username:Optional[str]='admin',
+    api_name: Optional[str] = None
 
 @app.get("/fetch_url_nexrad",status_code=status.HTTP_200_OK)
 async def fetch_url(userinput: UserInput,username=Depends(auth_handler.auth_wrapper)):
@@ -98,7 +99,7 @@ async def login(auth_details: UserData):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid username and/or password')
     token = auth_handler.encode_token(fetch_user_status[0]['username'])
     aws_functions.create_AWS_logs(f"User = {auth_details.username} , API = login , Status= 200_ok" ,"fast-api_logs")
-    return { 'token': token }
+    return {auth_details.username:token}
 
 @app.get('/geos_get_year',status_code=status.HTTP_200_OK)
 async def goes_year(username=Depends(auth_handler.auth_wrapper)):
@@ -256,9 +257,14 @@ def logging(logging:Logging):
     aws_functions.create_AWS_logs(f"User = Streamlit , API = logging_cloudwatch Msg: {logging.msg}",logging.log_stream)
     
     
-@app.get('/get_logs')
-def get_log(queryLog:Log_Query):
+@app.get('/get_log_count')
+def get_log(queryLog:Log_Query,username=Depends(auth_handler.auth_wrapper)):
     status=f"Status= "+str(queryLog.status)
-    return_logs=aws_functions.read_cloudwatch_logs(queryLog.log_name,status,queryLog.username,queryLog.filter_range)
-    print(len(return_logs))
+    return_logs=aws_functions.read_cloudwatch_logs(queryLog.log_name,status,queryLog.username,queryLog.filter_range,queryLog.api_name)
     return len(return_logs)
+
+@app.get('/get_full_logs')
+def get_log(queryLog:Log_Query,username=Depends(auth_handler.auth_wrapper)):
+    status=f"Status= "+str(queryLog.status)
+    return_logs=aws_functions.read_cloudwatch_logs(queryLog.log_name,status,queryLog.username,queryLog.filter_range,queryLog.api_name)
+    return return_logs

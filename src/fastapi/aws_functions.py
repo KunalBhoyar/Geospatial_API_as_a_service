@@ -150,21 +150,29 @@ class aws_function():
         except:
             return False
     
-    def read_cloudwatch_logs(self,stream_name,code,username,filter_range):
+    def read_cloudwatch_logs(self,stream_name,code,username,filter_range,api_name):
         logStreamName= self.get_log_stream_name(stream_name)
         cloudwatch = self.init_resources()
         response=cloudwatch.get_log_events(
             logGroupName=self.logGroupName,
             logStreamName=logStreamName
         )
-        return self.filter_logs(cloudwatch,code,username,filter_range)
+        return self.filter_logs(cloudwatch,code,username,filter_range,api_name)
     
-    def filter_logs(self,cloudwatch,code,username,filter_range):
+    def filter_logs(self,cloudwatch,code,username,filter_range,api_name):
         # write a CloudWatch Logs Insights query
-        if username == 'admin':
-            query = f"fields @timestamp, @message, @logStream | filter @message like /{code}/ | sort @timestamp desc"
+        
+        if username == 'admin': 
+            if api_name == None:
+                query = f"fields @timestamp, @message, @logStream | filter @message like /{code}/ | sort @timestamp desc"
+            else:
+                query = f"fields @timestamp, @message, @logStream | filter @message like /{code}/ and @message like /{api_name}/ | sort @timestamp desc"
+            
         else: 
-            query = f"fields @timestamp, @message, @logStream | filter @message like /{code}/ and @ message like /{username}/ | sort @timestamp desc"
+            if api_name == None:
+                query = f"fields @timestamp, @message, @logStream | filter @message like /{code}/ and @message like /{username}/ | sort @timestamp desc"
+            else:
+                query = f"fields @timestamp, @message, @logStream | filter @message like /{code}/ and @message like /{username}/ and @message like /{api_name}/ | sort @timestamp desc"
         if filter_range == 'last_hour':
             time_passed=3600
         elif filter_range == 'last_day':
