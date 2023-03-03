@@ -18,7 +18,7 @@ def main():
 
     loginColumn, registerColumn = st.columns(2, gap="large")
 
-    st.session_state
+    # st.session_state
 
     if "login_username_check" not in st.session_state:
         st.session_state.login_username_check = False
