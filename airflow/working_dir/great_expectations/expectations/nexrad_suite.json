@@ -1,0 +1,47 @@
+{
+  "data_asset_type": null,
+  "expectation_suite_name": "nexrad_suite",
+  "expectations": [
+    {
+      "expectation_type": "expect_table_row_count_to_be_between",
+      "kwargs": {
+        "max_value": 85571,
+        "min_value": 85571
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_table_columns_to_match_set",
+      "kwargs": {
+        "column_set": [
+          "ground_station",
+          "year",
+          "day",
+          "month",
+          "id"
+        ]
+      },
+      "meta": {}
+    }
+  ],
+  "ge_cloud_id": null,
+  "meta": {
+    "citations": [
+      {
+        "citation_date": "2023-03-03T16:39:21.100305Z",
+        "comment": "Created by effective Rule-Based Profiler of OnboardingDataAssistant with the configuration included.\n"
+      },
+      {
+        "batch_request": {
+          "data_asset_name": "nexrad_data.csv",
+          "data_connector_name": "default_inferred_data_connector_name",
+          "datasource_name": "noaa_datasource",
+          "limit": 1000
+        },
+        "citation_date": "2023-03-03T16:40:32.930327Z",
+        "comment": "Created suite added via CLI"
+      }
+    ],
+    "great_expectations_version": "0.15.50"
+  }
+}
