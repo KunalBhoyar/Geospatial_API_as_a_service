@@ -63,7 +63,9 @@ class aws_function():
                 'Key': fileName
             }
             bucket = s3.Bucket(self.bucket_name)
+            
             bucket.copy(copy_source, fileName)
+            
             self.create_AWS_logs(f"File Copy: {fileName} from {source_bucketName} to {bucket}","file_copy")
             return True
         except Exception as e:
@@ -73,12 +75,10 @@ class aws_function():
 
     #search by filename
     def get_geos_file_link(self, filename):
-
-        # print("get_geos_file_link", filename)
-
+        # print("get_geos_file_link")
         try:
             file = filename.split("_")
-            print(file)
+            # print(file)
             # prefix = "https://noaa-goes18.s3.amazonaws.com/"
             product = '-'.join(file[1].split("-")[:-1]).rstrip(string.digits)
             year = file[3][1:5]
@@ -90,13 +90,38 @@ class aws_function():
             # print("*****************************", file_prefix)
 
             goesFileStatus = self.downloadFileAndMove("noaa-goes18", file_prefix)
-            print(goesFileStatus)
+            # print(goesFileStatus)
             if goesFileStatus:
                 return {"file_prefix": file_prefix}
             return False
         
         except:
             return False
+    
+    def goes_query_files(self, product, year, day, hour):
+
+        try:
+            source_bucket_name = "noaa-goes18"
+
+            s3client = boto3.client('s3',
+                                region_name='us-east-1')
+
+            prefix = product + "/" + str(year) + "/" + str(day) + "/" + str(hour)
+
+            response = s3client.list_objects_v2(Bucket = source_bucket_name, Prefix = prefix )
+            contents = response.get("Contents")
+            
+            files = []
+
+            for content in contents:
+                # print(content['Key'])
+                # files.append(content['Key'])
+                files.append(content['Key'].split("/")[-1])
+
+            return files
+        
+        except:
+            print("Bucket or files not found")
         
     def nexrad_query_files(self, year, month, day, site):
 
@@ -111,7 +136,7 @@ class aws_function():
             # prefix = product + "/" + str(year) + "/" + str(day) + "/" + str(hour)
             prefix = str(year) + "/" + str(month) + "/" + str(day) + "/" + str(site)
 
-            print(prefix)
+            # print(prefix)
 
             response = s3client.list_objects_v2(Bucket = source_bucket_name, Prefix = prefix )
             contents = response.get("Contents")
@@ -119,7 +144,7 @@ class aws_function():
             files = []
 
             for content in contents:
-                print(content['Key'])
+                # print(content['Key'])
                 # files.append(content['Key'])
                 files.append(content['Key'].split("/")[-1])
 
@@ -203,3 +228,4 @@ class aws_function():
             queryId=query_id
         )
         return query_results['results']
+        # return query_results

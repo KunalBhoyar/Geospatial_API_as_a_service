@@ -8,15 +8,15 @@ import time,datetime
 load_dotenv()
 class database_methods():
     def __init__(self):
-        conn = sqlite3.connect(os.environ.get('DbUser'))
+        conn = sqlite3.connect('data/USER_DATA.db')
         self.cursor_user = conn.cursor()
         self.cursor_user.execute('''CREATE TABLE IF NOT EXISTS USER (id INTEGER PRIMARY KEY AUTOINCREMENT ,username TEXT NOT NULL UNIQUE, password TEXT NOT NULL, tier TEXT NOT NULL,current_count NUMBER DEFAULT 0 ,last_request_time DATETIME ,created_at DATETIME DEFAULT CURRENT_TIMESTAMP)''')
-        conn_geo = sqlite3.connect(os.environ.get('DbGeo'))
+        conn_geo = sqlite3.connect('data/GEOSPATIAL_DATA.db')
         conn.commit()
         self.cursor_geo = conn_geo.cursor()
         
     def create_connection(self,database_name):
-        conn = sqlite3.connect(os.environ.get('DbPath')+"/"+database_name+".db")
+        conn = sqlite3.connect('data/'+database_name+".db")
         cursor = conn.cursor()
         return conn,cursor
         
@@ -32,27 +32,31 @@ class database_methods():
             return 20
     def check_if_eligible(self,username):
         try:
-            _,cursor_user=self.create_connection('USER_DATA')
-            query=f"select current_count,tier,last_request_time from USER where username='{username}'"
-            cursor_user.execute(query)
-            rows = cursor_user.fetchall()
-            response=self.return_json(rows,cursor_user)[0]
-            if response['last_request_time'] == None:
-                response['last_request_time']=datetime.datetime.now()
-                self.update_last_req_time(username,datetime.datetime.now())
-                self.update_count_for_user(username,0)
-            last_request_time = datetime.datetime.strptime(response['last_request_time'], '%Y-%m-%d %H:%M:%S.%f')
-            time_elapsed=datetime.datetime.now() - last_request_time
-            if time_elapsed > datetime.timedelta(hours=1):
-                self.update_count_for_user(username,1)
+            print(username[0]['username'])
+            if username[0]['username'] == "admin":
                 return True
-            elif time_elapsed < datetime.timedelta(hours=1):
-                allowed_count=self.get_allowed_count(response['tier'])
-                if response['current_count'] == allowed_count:
-                    return False
-                elif int(response['current_count']) < allowed_count:
-                    self.update_count_for_user(username,response['current_count']+1)
+            else:
+                _,cursor_user=self.create_connection('USER_DATA')
+                query=f"select current_count,tier,last_request_time from USER where username='{username}'"
+                cursor_user.execute(query)
+                rows = cursor_user.fetchall()
+                response=self.return_json(rows,cursor_user)[0]
+                if response['last_request_time'] == None:
+                    response['last_request_time']=datetime.datetime.now()
+                    self.update_last_req_time(username,datetime.datetime.now())
+                    self.update_count_for_user(username,0)
+                last_request_time = datetime.datetime.strptime(response['last_request_time'], '%Y-%m-%d %H:%M:%S.%f')
+                time_elapsed=datetime.datetime.now() - last_request_time
+                if time_elapsed > datetime.timedelta(hours=1):
+                    self.update_count_for_user(username,1)
                     return True
+                elif time_elapsed < datetime.timedelta(hours=1):
+                    allowed_count=self.get_allowed_count(response['tier'])
+                    if response['current_count'] == allowed_count:
+                        return False
+                    elif int(response['current_count']) < allowed_count:
+                        self.update_count_for_user(username,response['current_count']+1)
+                        return True
         except Exception as e:
             print("check_if_eligible: "+str(e))
             return "failed_insert"

@@ -62,7 +62,7 @@ def get_geos_file_link(filename):
 
     file_prefix =  product + "/" + year + "/" + day + "/" + hour + "/" + filename
 
-    print("*****************************", file_prefix)
+    # print("*****************************", file_prefix)
 
     downloadFileAndMove(file_prefix)
 
