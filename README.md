@@ -3,7 +3,7 @@
 #  Geospatial  API as a service.
 
 
-[![PyPI](https://codelabs-preview.appspot.com/?file_id=1nghIHlS4LUmvoRvo3yWZrO-jxsyU_Wz35ny6Q_JB0RQ#2)]
+
 
 
 
